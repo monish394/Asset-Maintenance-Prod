@@ -1,0 +1,588 @@
+import { IoMdNotifications } from "react-icons/io";
+import {
+  FaUser,
+  FaHome,
+  FaFileAlt,
+  FaCreditCard,
+  FaClipboardList,
+  FaBoxOpen,
+  FaCamera, FaTimes, FaEdit, FaSignOutAlt, FaLock
+} from "react-icons/fa";
+import { HiMenu, HiX } from "react-icons/hi";
+import logo from "../assets/logo.png";
+import { useNavigate, NavLink } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useUserAsset } from "../context/userassetprovider";
+import axios from "../../../config/api";
+
+const formatRelativeTime = (date) => {
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - new Date(date)) / 1000);
+
+  if (diffInSeconds < 60) return "Just now";
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  return new Date(date).toLocaleDateString();
+};
+
+export default function UserNavbar() {
+  const { usernotifications = [], userinfo, setUserinfo, markNotificationsAsRead, markSingleNotificationAsRead } =
+    useUserAsset();
+
+  const [showUserNotifications, setShowUserNotifications] = useState(false);
+  const [showUsermenu, setShowUsermenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ oldPassword: "", newPassword: "", confirmPassword: "" });
+  const [passwordError, setPasswordError] = useState("");
+  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", address: "", profile: "" });
+  const [uploading, setUploading] = useState(false);
+
+  const [hasUnreadOverride, setHasUnreadOverride] = useState(false);
+
+  const notificationRef = useRef(null);
+  const userMenuRef = useRef(null);
+  const mobileMenuRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (userinfo) {
+      setEditForm({
+        name: userinfo.name || "",
+        email: userinfo.email || "",
+        phone: userinfo.phone || "",
+        address: userinfo.address || "",
+        profile: userinfo.profile || ""
+      });
+    }
+  }, [userinfo]);
+
+  useEffect(() => {
+    const hasUnread = usernotifications.some((n) => !n.isread);
+    setHasUnreadOverride(hasUnread);
+  }, [usernotifications]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        (notificationRef.current &&
+          notificationRef.current.contains(event.target)) ||
+        (userMenuRef.current && userMenuRef.current.contains(event.target)) ||
+        (mobileMenuRef.current && mobileMenuRef.current.contains(event.target))
+      ) {
+        return;
+      }
+
+      setShowUserNotifications(false);
+      setShowUsermenu(false);
+      setShowMobileMenu(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await axios.post("/assets/upload-image", formData);
+      setEditForm(prev => ({ ...prev, profile: res.data.imageUrl }));
+    } catch (err) {
+      console.error("Profile image upload failed:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.put(`/updateuser/${userinfo._id}`, editForm);
+      setUserinfo(res.data);
+      setShowEditModal(false);
+    } catch (err) {
+      console.error("Update profile failed:", err);
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("New passwords do not match");
+      return;
+    }
+    try {
+      await axios.put("/changepassword", {
+        oldPassword: passwordForm.oldPassword,
+        newPassword: passwordForm.newPassword
+      });
+      setShowPasswordModal(false);
+      setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+      setPasswordError("");
+      alert("Password updated successfully!");
+    } catch (err) {
+      setPasswordError(err.response?.data?.err || "Failed to update password");
+    }
+  };
+
+  const menu = [
+    { label: "Home", to: "/user/home", icon: <FaHome size={18} /> },
+    { label: "Raise Request", to: "/user/raiserequest", icon: <FaFileAlt size={18} /> },
+    { label: "Payment", to: "/user/payment", icon: <FaCreditCard size={18} /> },
+    { label: "My Work Orders", to: "/user/workorderrequest", icon: <FaClipboardList size={18} /> },
+    { label: "Assets", to: "/user/pickassets", icon: <FaBoxOpen size={18} /> },
+  ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("role");
+    navigate("/");
+  };
+
+  const handleNotificationClick = async () => {
+    const willOpen = !showUserNotifications;
+
+    setShowUserNotifications(willOpen);
+    setShowUsermenu(false);
+    setShowMobileMenu(false);
+
+    if (willOpen) {
+      setHasUnreadOverride(false);
+
+      if (typeof markNotificationsAsRead === "function") {
+        await markNotificationsAsRead();
+      }
+    }
+  };
+
+  const handleUserMenuClick = () => {
+    setShowUsermenu((prev) => !prev);
+    setShowUserNotifications(false);
+    setShowMobileMenu(false);
+  };
+
+  const handleMobileMenuClick = () => {
+    setShowMobileMenu((prev) => !prev);
+    setShowUserNotifications(false);
+    setShowUsermenu(false);
+  };
+
+  return (
+    <nav className="w-full h-24 flex items-center justify-between px-4 md:px-8 shadow-lg bg-gray-50 fixed top-0 left-0 z-50 font-sans">
+
+      <div>
+        <img
+          onClick={() => navigate("/user/home")}
+          src={logo}
+          alt="Logo"
+          className="h-12 md:h-16 w-auto cursor-pointer"
+        />
+      </div>
+
+      <div className="flex items-center gap-4">
+
+        <ul className="hidden lg:flex items-center gap-1 text-gray-700 font-medium text-sm">
+          {menu.map((item) => (
+            <li key={item.to}>
+              <NavLink
+                to={item.to}
+                className={({ isActive }) =>
+                  `relative flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 group ${isActive
+                    ? "bg-indigo-50 text-indigo-700 font-bold shadow-sm"
+                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-100/80"
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span className={`transition-colors duration-300 ${isActive ? "text-indigo-600" : "text-gray-400 group-hover:text-gray-600"}`}>
+                      {item.icon}
+                    </span>
+                    <span className="tracking-tight">{item.label}</span>
+                    {isActive && (
+                      <></>
+                    )}
+                  </>
+                )}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex items-center gap-4">
+
+          <div ref={notificationRef} className="relative">
+            <button
+              onClick={handleNotificationClick}
+              className="relative text-gray-700 hover:text-gray-900 group"
+            >
+              <IoMdNotifications size={26} className="group-hover:scale-110 transition-transform" />
+              {!showUserNotifications && hasUnreadOverride && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-[10px] text-white font-bold rounded-full border-2 border-white flex items-center justify-center">
+                  {usernotifications.filter(n => !n.isread).length}
+                </span>
+              )}
+            </button>
+
+            {showUserNotifications && (
+              <div className="absolute right-0 mt-3 w-80 bg-white shadow-2xl rounded-2xl z-50 border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                  <h3 className="font-bold text-gray-800">Notifications</h3>
+                  {usernotifications.some(n => !n.isread) && (
+                    <button
+                      onClick={markNotificationsAsRead}
+                      className="text-[11px] font-bold text-blue-600 hover:text-blue-700 uppercase tracking-tight"
+                    >
+                      Mark all as read
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-[400px] overflow-y-auto">
+                  {usernotifications.length === 0 ? (
+                    <div className="p-10 text-center">
+                      <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <IoMdNotifications size={24} className="text-gray-400" />
+                      </div>
+                      <p className="text-gray-500 text-sm font-medium">No new notifications</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-50 text-left">
+                      {usernotifications
+                        .slice()
+                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                        .map((n) => (
+                          <div
+                            key={n._id}
+                            onClick={() => !n.isread && markSingleNotificationAsRead(n._id)}
+                            className={`p-4 transition cursor-pointer hover:bg-gray-50 relative group ${!n.isread ? "bg-blue-50/30" : ""}`}
+                          >
+                            {!n.isread && (
+                              <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500" />
+                            )}
+                            <div className="flex gap-3">
+                              <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${!n.isread ? "bg-blue-500 animate-pulse" : "bg-transparent"}`} />
+                              <div className="flex-1">
+                                <p className={`text-sm leading-relaxed ${!n.isread ? "text-gray-900 font-semibold" : "text-gray-600"}`}>
+                                  {n.message}
+                                </p>
+                                <span className="text-[10px] text-gray-400 mt-2 block font-medium">
+                                  {formatRelativeTime(n.createdAt)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+                {usernotifications.length > 0 && (
+                  <div className="p-3 bg-gray-50 text-center border-t border-gray-100">
+                    <button className="text-xs font-semibold text-gray-500 hover:text-gray-700">
+                      View all notifications
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div ref={userMenuRef} className="relative">
+            <button
+              onClick={handleUserMenuClick}
+              className="group flex items-center gap-2 p-1.5 rounded-full hover:bg-gray-100 transition-all duration-300 border border-transparent hover:border-gray-200"
+            >
+              {userinfo?.profile ? (
+                <img src={userinfo.profile} alt="Avatar" className="h-10 w-10 rounded-full object-cover border-2 border-gray-200" />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold group-hover:scale-105 transition-transform">
+                  {userinfo?.name?.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </button>
+
+            {showUsermenu && userinfo && (
+              <div className="absolute right-0 mt-3 w-72 bg-white shadow-2xl rounded-2xl border border-gray-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="bg-gradient-to-r from-green-600 to-blue-500 p-6 text-white text-center">
+                  <div className="mx-auto h-20 w-20 rounded-full border-4 border-white/30 shadow-xl mb-3 overflow-hidden">
+                    {userinfo.profile ? (
+                      <img src={userinfo.profile} alt="Avatar" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full bg-blue-400 flex items-center justify-center text-2xl font-bold">
+                        {userinfo.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="font-bold text-lg">{userinfo.name}</h3>
+                  <p className="text-blue-100 text-sm">{userinfo.email}</p>
+                </div>
+
+                <div className="p-4 bg-gray-50 border-b border-gray-100">
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase font-bold">Role</p>
+                      <p className="text-sm font-semibold text-gray-700 capitalize">{userinfo.role}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase font-bold">Joined</p>
+                      <p className="text-sm font-semibold text-gray-700">{new Date(userinfo.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-2 space-y-1">
+                  <button
+                    onClick={() => {
+                      setShowEditModal(true);
+                      setShowUsermenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 rounded-xl transition group"
+                  >
+                    <FaEdit className="text-gray-400 group-hover:text-blue-600" />
+                    Edit Profile
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowPasswordModal(true);
+                      setShowUsermenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 rounded-xl transition group"
+                  >
+                    <FaLock className="text-gray-400 group-hover:text-blue-600" />
+                    Change Password
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition group"
+                  >
+                    <FaSignOutAlt className="group-hover:translate-x-1 transition-transform" />
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {showEditModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 text-left">
+              <div className="bg-white w-full max-w-[380px] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="px-5 py-4 border-b border-gray-50 flex justify-between items-center bg-white">
+                  <h2 className="text-base font-bold text-slate-800 tracking-tight">Edit Profile</h2>
+                  <button onClick={() => setShowEditModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1">
+                    <FaTimes size={16} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleEditSubmit} className="p-5 space-y-4">
+                  <div className="flex justify-center pb-2">
+                    <div className="relative group">
+                      <div className="h-20 w-20 rounded-full border-2 border-slate-50 shadow-sm overflow-hidden bg-slate-50">
+                        {editForm.profile ? (
+                          <img src={editForm.profile} className="h-full w-full object-cover" alt="Profile" />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center text-xl font-bold text-slate-300">
+                            {userinfo.name.charAt(0)}
+                          </div>
+                        )}
+                        {uploading && (
+                          <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                            <div className="h-4 w-4 border-2 border-indigo-600 border-t-transparent animate-spin rounded-full"></div>
+                          </div>
+                        )}
+                      </div>
+                      <label className="absolute -bottom-0.5 -right-0.5 bg-indigo-600 text-white p-1.5 rounded-full shadow-lg cursor-pointer hover:bg-indigo-700 transition-all border-2 border-white">
+                        <FaCamera size={10} />
+                        <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3.5">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                      <input
+                        type="text"
+                        value={editForm.name}
+                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-sm font-medium"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+                      <input
+                        type="email"
+                        value={editForm.email}
+                        onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-sm font-medium"
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone</label>
+                        <input
+                          type="text"
+                          value={editForm.phone}
+                          onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                          className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-sm font-medium"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Location</label>
+                        <input
+                          type="text"
+                          value={editForm.address}
+                          onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                          className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-sm font-medium"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowEditModal(false)}
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold hover:bg-slate-200 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-[1.5] px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {showPasswordModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 text-left">
+              <div className="bg-white w-full max-w-[360px] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="px-5 py-4 border-b border-gray-50 flex justify-between items-center bg-white">
+                  <h2 className="text-base font-bold text-slate-800 tracking-tight">Security</h2>
+                  <button onClick={() => setShowPasswordModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1">
+                    <FaTimes size={16} />
+                  </button>
+                </div>
+
+                <form onSubmit={handlePasswordSubmit} className="p-5 space-y-4">
+                  {passwordError && (
+                    <div className="bg-red-50 text-red-600 px-3.5 py-2.5 rounded-xl text-[11px] font-bold border border-red-100">
+                      {passwordError}
+                    </div>
+                  )}
+
+                  <div className="space-y-3.5">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Current Password</label>
+                      <input
+                        type="password"
+                        value={passwordForm.oldPassword}
+                        onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-sm font-medium"
+                        placeholder="Enter Current Password"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">New Password</label>
+                      <input
+                        type="password"
+                        value={passwordForm.newPassword}
+                        onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-sm font-medium"
+                        placeholder="Enter New Password"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Confirm New</label>
+                      <input
+                        type="password"
+                        value={passwordForm.confirmPassword}
+                        onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-sm font-medium"
+                        placeholder="Enter Confirm Password"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordModal(false)}
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-500 text-xs font-bold hover:bg-slate-200 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-[1.5] px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all"
+                    >
+                      Update Password
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          <div ref={mobileMenuRef} className="lg:hidden relative">
+            <button onClick={handleMobileMenuClick}>
+              {showMobileMenu ? <HiX size={28} /> : <HiMenu size={28} />}
+            </button>
+
+            {showMobileMenu && (
+              <div className="absolute right-0 mt-3 w-64 bg-white shadow-xl rounded-2xl p-3 z-50 border border-gray-100">
+                <ul className="space-y-1">
+                  {menu.map((item) => (
+                    <li key={item.to}>
+                      <NavLink
+                        to={item.to}
+                        onClick={() => setShowMobileMenu(false)}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                            ? "bg-indigo-50 text-indigo-700 font-bold"
+                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+                          }`
+                        }
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <span className={isActive ? "text-indigo-600" : "text-gray-400"}>
+                              {item.icon}
+                            </span>
+                            <span>{item.label}</span>
+                          </>
+                        )}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
+    </nav>
+  );
+}
