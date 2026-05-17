@@ -286,14 +286,8 @@ app.get("/api/chat/:requestId", AuthenticateUser, async (req, res) => {
   }
 });
 
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
-
-app.get("/{*splat}", (req, res) => {
-  if (!req.path.startsWith("/api")) {
-    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
-  } else {
-    res.status(404).json({ message: "API route not found" });
-  }
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Asset Maintenance API is running successfully!" });
 });
 
 const startServer = () => {
