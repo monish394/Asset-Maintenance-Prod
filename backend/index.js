@@ -31,12 +31,22 @@ import { upload } from "./app/middlewares/cloudinaryUpload.js";
 const app = express();
 const httpServer = createServer(app);
 
-const allowedOrigins = process.env.FRONTEND_URL
-  ? [process.env.FRONTEND_URL, "http://localhost:5173"]
-  : "*";
-
 const corsOptions = {
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    
+    const isAllowed = 
+      origin === process.env.FRONTEND_URL ||
+      origin.startsWith("http://localhost:") ||
+      origin.endsWith(".vercel.app") ||
+      origin.includes("localhost");
+      
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   credentials: true
 };
