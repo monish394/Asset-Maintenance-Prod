@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios from "./config/api"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 // import Admin from "./role/Admin/assets/admin"
@@ -24,9 +24,7 @@ export default function Dashboard() {
             return;
 
         }
-        axios.get("http://localhost:5000/api/dashboardroute", {
-            headers: { Authorization: localStorage.getItem("token") }
-        })
+        axios.get("/dashboardroute")
             .then((res) => {
                 console.log(res.data)
                 localStorage.setItem("role", res.data.role)
