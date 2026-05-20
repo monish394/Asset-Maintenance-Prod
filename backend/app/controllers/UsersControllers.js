@@ -417,6 +417,7 @@ UserCtrl.GoogleLogin = async (req, res) => {
     try {
       const smtpUser = process.env.ADMIN_EMAIL?.trim();
       const smtpPass = process.env.EMAIL_PASS?.trim();
+      const fromEmail = process.env.EMAIL_FROM?.trim() || smtpUser;
 
       const transporter = nodemailer.createTransport({
         host: "smtp-relay.brevo.com",
@@ -431,10 +432,11 @@ UserCtrl.GoogleLogin = async (req, res) => {
 
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = path.dirname(__filename);
-      const logoPath = path.resolve(__dirname, "../../../public/logo.png");
+      const logoPath = path.resolve(__dirname, "../../public/logo.png");
 
+      console.log(`Sending login email to: ${email} from: ${fromEmail}`);
       const mailOptions = {
-        from: `"Asset Maintenance Team" <monish123ar@gmail.com>`,
+        from: `"Asset Maintenance Team" <${fromEmail}>`,
         to: email,
         subject: "Secure Login Notification - Asset Maintenance",
         html: `
