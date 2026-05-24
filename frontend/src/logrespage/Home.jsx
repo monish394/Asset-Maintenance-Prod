@@ -97,6 +97,7 @@ const PublicHome = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ firstName: "", email: "", message: "" });
   const [stats, setStats] = useState({ totalAssets: 0, activeRequests: 0, compliance: 100 });
+  const [activeRoleTab, setActiveRoleTab] = useState("admin");
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -178,10 +179,18 @@ const PublicHome = () => {
   };
 
   return (
-    <div id="top" className="min-h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-200 via-white to-indigo-50/60 text-slate-800 selection:bg-indigo-100" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div id="top" className="min-h-screen premium-grid text-slate-800 selection:bg-indigo-100" style={{ fontFamily: "'Inter', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
+        .premium-grid {
+          background-color: #fafbfd;
+          background-image: 
+            linear-gradient(to right, rgba(99, 102, 241, 0.025) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(99, 102, 241, 0.025) 1px, transparent 1px);
+          background-size: 32px 32px;
+        }
+
         .card-shadow {
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         }
@@ -241,16 +250,18 @@ const PublicHome = () => {
       </motion.header>
 
 
-      <section className="relative pt-16 pb-24 border-b border-blue-100/50 bg-transparent">
+      <section className="relative pt-16 pb-24 border-b border-blue-100/50 bg-transparent overflow-hidden">
+
+
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
-          className="max-w-5xl mx-auto px-6 text-center"
+          className="max-w-5xl mx-auto px-6 text-center relative z-10"
         >
           <motion.div
             variants={staggerItem}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-bold uppercase tracking-wider mb-6"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-bold uppercase tracking-wider mb-6 border border-indigo-200/50 shadow-[0_0_15px_rgba(99,102,241,0.15)]"
           >
             Enterprise Asset Management
           </motion.div>
@@ -259,7 +270,7 @@ const PublicHome = () => {
             variants={staggerItem}
             className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-6 max-w-3xl mx-auto leading-tight"
           >
-            Streamline Your Organization's <span className="text-indigo-600">Assets & Maintenance</span>
+            Streamline Your Organization's <span className="text-indigo-600 drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]">Assets & Maintenance</span>
           </motion.h1>
 
           <motion.p
@@ -273,10 +284,10 @@ const PublicHome = () => {
             variants={staggerItem}
             className="flex flex-col sm:flex-row justify-center gap-3 mb-20"
           >
-            <a href="/register" className="px-8 py-3.5 bg-indigo-600 text-white font-bold rounded-lg shadow-md hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 text-sm">
+            <a href="/register" className="px-8 py-3.5 bg-indigo-600 text-white font-bold rounded-lg shadow-[0_0_20px_rgba(99,102,241,0.35)] hover:shadow-[0_0_30px_rgba(99,102,241,0.55)] hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 text-sm z-10">
               Get Started <HiOutlineArrowRight />
             </a>
-            <a href="#features" className="px-8 py-3.5 bg-white border border-slate-200 font-bold text-slate-600 rounded-lg hover:bg-slate-50 transition-all text-sm">
+            <a href="#features" className="px-8 py-3.5 bg-white border border-slate-200 font-bold text-slate-600 rounded-lg hover:bg-slate-50 transition-all text-sm z-10">
               Explore Features
             </a>
           </motion.div>
@@ -309,6 +320,7 @@ const PublicHome = () => {
         </motion.div>
       </section>
 
+      {/* Features Section */}
 
       <section id="features" className="py-24 bg-transparent">
         <div className="max-w-6xl mx-auto px-6">
@@ -352,42 +364,397 @@ const PublicHome = () => {
       </section>
 
 
-      <section id="workflow" className="py-24 bg-blue-50/30">
+      <section id="workflow" className="py-24 bg-gradient-to-br from-indigo-50/40 via-white to-blue-50/30">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="max-w-xl mb-16"
+            className="text-center mb-16"
           >
-            <h2 className="text-[11px] font-bold text-indigo-600 uppercase tracking-widest mb-3">Workflow</h2>
-            <h3 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Structured Asset Operations</h3>
+            <h2 className="text-[11px] font-bold text-indigo-600 uppercase tracking-widest mb-3">How It Works</h2>
+            <h3 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">From Asset to Resolution in 3 Steps</h3>
+            <p className="text-slate-500 text-sm mt-3 max-w-xl mx-auto">A seamless, end-to-end operations loop built for speed, visibility and accountability.</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6 relative">
+            {/* Connecting arrow line (desktop only) */}
+            <div className="hidden md:block absolute top-14 left-[33%] w-[34%] border-t-2 border-dashed border-indigo-200 z-0" />
+
             {[
-              { title: "Asset Registration", step: "01", desc: "Digitally onboard assets with QR/barcode tagging for immediate active tracking." },
-              { title: "Proactive Monitoring", step: "02", desc: "Track asset lifecycles and schedule preventive maintenance automatically." },
-              { title: "Service Resolution", step: "03", desc: "Assign technicians, verify completed work, and log auditable compliance history." },
+              {
+                step: "01",
+                title: "Register Assets",
+                desc: "Digitally onboard equipment with photo uploads, QR/barcode tags, and category metadata for immediate lifecycle tracking.",
+                img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&auto=format&fit=crop&q=70",
+                gradient: "from-indigo-500 to-blue-500",
+                tag: "Setup"
+              },
+              {
+                step: "02",
+                title: "Monitor & Schedule",
+                desc: "Track real-time asset health, set automatic preventive maintenance reminders, and get instant fault alerts.",
+                img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&auto=format&fit=crop&q=70",
+                gradient: "from-violet-500 to-indigo-500",
+                tag: "Operations"
+              },
+              {
+                step: "03",
+                title: "Resolve & Verify",
+                desc: "Dispatch certified technicians, review completion evidence, and store auditable compliance history per asset.",
+                img: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&auto=format&fit=crop&q=70",
+                gradient: "from-emerald-500 to-teal-500",
+                tag: "Closure"
+              },
             ].map((item, i) => (
               <GsapHoverCard
                 key={i}
-                className="bg-white p-6 rounded-xl border border-slate-200 cursor-default relative z-10 transition-colors"
+                className="bg-white rounded-2xl border border-slate-100 shadow-md overflow-hidden cursor-default relative z-10 hover:shadow-xl transition-all duration-300 flex flex-col"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
+                transition={{ duration: 0.5, delay: i * 0.15, ease: "easeOut" }}
               >
-                <span className="text-[10px] font-bold text-indigo-600 mb-4 block hover-inner">STEP {item.step}</span>
-                <h5 className="font-bold text-slate-900 mb-2 truncate hover-inner">{item.title}</h5>
-                <p className="text-slate-500 text-xs leading-relaxed hover-inner">{item.desc}</p>
+                {/* Step image */}
+                <div className="relative h-44 overflow-hidden">
+                  <img src={item.img} alt={item.title} className="w-full h-full object-cover hover-inner" />
+                  <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-60`} />
+                  <div className="absolute top-4 left-4 flex items-center gap-2">
+                    <span className="text-[9px] font-black text-white bg-white/20 backdrop-blur-sm border border-white/30 px-2.5 py-1 rounded-full uppercase tracking-widest">{item.tag}</span>
+                  </div>
+                  <span className="absolute bottom-4 right-4 text-5xl font-black text-white/20 leading-none select-none">{item.step}</span>
+                </div>
+                {/* Step content */}
+                <div className="p-6 flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`text-[9px] font-black uppercase tracking-widest bg-gradient-to-r ${item.gradient} text-transparent bg-clip-text`}>Step {item.step}</span>
+                  </div>
+                  <h5 className="font-black text-slate-900 text-base mb-2 hover-inner">{item.title}</h5>
+                  <p className="text-slate-500 text-xs leading-relaxed hover-inner">{item.desc}</p>
+                </div>
               </GsapHoverCard>
             ))}
           </div>
+
+
         </div>
       </section>
 
+
+      {/* Interactive Role Showcase Section */}
+      <section className="py-24 bg-gradient-to-b from-white via-indigo-50/15 to-white border-t border-slate-200/40 relative overflow-hidden">
+        {/* Decorative background glow for the showcase */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-indigo-500/5 blur-3xl pointer-events-none z-0" />
+        
+        <div className="max-w-6xl mx-auto px-6 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-[11px] font-bold text-indigo-600 uppercase tracking-widest mb-3">Targeted Workspaces</h2>
+            <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Tailored Experience for Every Team Member</h3>
+            <p className="text-slate-500 text-sm mt-3 max-w-xl mx-auto">Explore how AssetMaintenance delivers specialized features and real-time coordination for each role.</p>
+          </motion.div>
+
+          {/* Interactive Role Tabs */}
+          <div className="flex justify-center gap-2 mb-12 bg-slate-100 p-1.5 rounded-xl max-w-lg mx-auto border border-slate-200">
+            {[
+              { id: "admin", label: "Administrators", color: "from-indigo-500 to-indigo-600" },
+              { id: "technician", label: "Technicians", color: "from-violet-500 to-violet-600" },
+              { id: "user", label: "Users", color: "from-emerald-500 to-emerald-600" }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveRoleTab(tab.id)}
+                className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all relative ${
+                  activeRoleTab === tab.id
+                    ? "bg-white text-slate-900 shadow-md border border-slate-200/50"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                {activeRoleTab === tab.id && (
+                  <motion.span 
+                    layoutId="activeIndicator"
+                    className="absolute inset-x-0 bottom-0 h-0.5 bg-indigo-600 rounded-full"
+                    transition={{ duration: 0.3 }}
+                  />
+                )}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Role Detail Showcase Panel */}
+          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-3xl p-8 md:p-12 shadow-xl">
+            {activeRoleTab === "admin" && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4 }}
+                className="grid md:grid-cols-12 gap-12 items-center"
+              >
+                {/* Text Block */}
+                <div className="md:col-span-6 space-y-6">
+                  <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full">
+                    Control Center
+                  </span>
+                  <h4 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                    Supervise Assets, Assign Tasks & Audit Compliance
+                  </h4>
+                  <p className="text-slate-500 text-sm leading-relaxed">
+                    Gain absolute oversight of physical inventory, manage maintenance teams, and review auditable operational health logs with an interface engineered for maximum density and clean visual hierarchy.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {[
+                      "Automated technician scheduling & task routing rules",
+                      "Visual compliance ratings with instant failover status pings",
+                      "Deep statistics dashboards with real-time utilization graphs"
+                    ].map((feature, idx) => (
+                      <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-600 font-medium">
+                        <span className="w-4 h-4 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">✓</span>
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-150">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Global Inventory</p>
+                      <p className="text-lg font-black text-slate-900">100% Tracking</p>
+                    </div>
+                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-150">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Audit Success</p>
+                      <p className="text-lg font-black text-slate-950">Instant Reports</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Simulated UI Mockup Block */}
+                <div className="md:col-span-6 bg-slate-950 rounded-2xl p-6 border border-slate-800 shadow-2xl relative overflow-hidden min-h-[300px] flex flex-col justify-between">
+                  <div className="absolute top-0 right-0 w-36 h-36 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+                  
+                  <div className="flex justify-between items-center pb-4 border-b border-slate-800">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse" />
+                      <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Admin Main Dashboard</span>
+                    </div>
+                    <span className="text-[9px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/30 px-2 py-0.5 rounded uppercase tracking-wider">Live View</span>
+                  </div>
+
+                  <div className="space-y-4 my-6">
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { label: "Compliance", val: stats.compliance + "%", color: "text-emerald-400" },
+                        { label: "Active Jobs", val: stats.activeRequests.toString(), color: "text-indigo-400" },
+                        { label: "Assets Registered", val: stats.totalAssets + "+", color: "text-blue-400" }
+                      ].map((item, i) => (
+                        <div key={i} className="bg-slate-900 border border-slate-800 p-3 rounded-xl">
+                          <p className="text-[8px] font-bold text-slate-500 uppercase tracking-wider mb-1">{item.label}</p>
+                          <p className={`text-base font-black ${item.color}`}>{item.val}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2">
+                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pinging Network Gateways</p>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-slate-300 flex items-center gap-1.5 font-mono"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Gateway: Central Node</span>
+                        <span className="text-emerald-400 font-bold">ONLINE</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-slate-300 flex items-center gap-1.5 font-mono"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> AI Scheduler Engine</span>
+                        <span className="text-emerald-400 font-bold">ONLINE</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[10px] text-slate-500">
+                    <span>System OK</span>
+                    <span className="font-mono text-indigo-400">Ver 1.4.2</span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeRoleTab === "technician" && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4 }}
+                className="grid md:grid-cols-12 gap-12 items-center"
+              >
+                {/* Text Block */}
+                <div className="md:col-span-6 space-y-6">
+                  <span className="text-[10px] font-black text-violet-600 uppercase tracking-widest bg-violet-50 border border-violet-100 px-3 py-1 rounded-full">
+                    Field Specialist
+                  </span>
+                  <h4 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                    Action Dispatched Tasks with Diagnostic Checklists
+                  </h4>
+                  <p className="text-slate-500 text-sm leading-relaxed">
+                    Accept assigned maintenance tasks instantly from your personal panel. Follow step-by-step diagnostic checklists designed for individual machine categories, and log task progress (Accept to Finish) dynamically on site.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {[
+                      "Real-time mobile-ready dispatches showing exact machine details",
+                      "Checklist routines customized specifically per asset category",
+                      "Direct field-to-base ticket progress relays (Accept & Finish states)"
+                    ].map((feature, idx) => (
+                      <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-600 font-medium">
+                        <span className="w-4 h-4 rounded-full bg-violet-50 border border-violet-200 text-violet-600 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">✓</span>
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-150">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Work Order Routing</p>
+                      <p className="text-lg font-black text-slate-900">Real-time Alerts</p>
+                    </div>
+                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-150">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Diagnostic Precision</p>
+                      <p className="text-lg font-black text-slate-955">Step Checklists</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Simulated UI Mockup Block */}
+                <div className="md:col-span-6 bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-2xl relative overflow-hidden min-h-[300px] flex flex-col justify-between">
+                  <div className="absolute top-0 right-0 w-36 h-36 bg-violet-500/10 rounded-full blur-2xl pointer-events-none" />
+                  
+                  <div className="flex justify-between items-center pb-4 border-b border-slate-800">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+                      <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Active Dispatch Order</span>
+                    </div>
+                    <span className="text-[9px] font-bold text-red-400 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded uppercase tracking-wider">High Risk</span>
+                  </div>
+
+                  <div className="my-6 space-y-3">
+                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-850">
+                      <div className="flex justify-between items-start mb-2">
+                        <h5 className="text-xs font-bold text-white">Central Router - Air Unit #2</h5>
+                        <span className="text-[8px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">HVAC</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mb-3">Location: Server Room Alpha (2nd Floor)</p>
+                      
+                      <div className="space-y-2">
+                        <p className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Required Checklist</p>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-300">
+                          <span className="w-3.5 h-3.5 rounded bg-violet-600/20 text-violet-400 flex items-center justify-center border border-violet-500/40 text-[8px] font-bold">✓</span>
+                          <span>Audit wiring and connector integrity</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-300">
+                          <span className="w-3.5 h-3.5 rounded bg-slate-800 flex items-center justify-center border border-slate-700 text-[8px] font-bold"> </span>
+                          <span className="text-slate-400">Perform cooling cycle fluid recharge</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-slate-500">Task Assigned: Just now</span>
+                    <button className="px-3.5 py-1.5 bg-violet-600 text-white font-bold rounded-lg text-[9px] uppercase tracking-wider hover:bg-violet-700">
+                      Start Task
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeRoleTab === "user" && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4 }}
+                className="grid md:grid-cols-12 gap-12 items-center"
+              >
+                {/* Text Block */}
+                <div className="md:col-span-6 space-y-6">
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">
+                    End-User Workspace
+                  </span>
+                  <h4 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                    On-Demand Maintenance Requests & AI Chatbot Support
+                  </h4>
+                  <p className="text-slate-500 text-sm leading-relaxed">
+                    Equip general users and occupants to file maintenance requests in under 30 seconds. General users gain access to real-time status trackers, category-based request forms, and an advanced AI chatbot to assist with technical fault reports.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {[
+                      "Quick category selectors (HVAC, Electrical, Mechanical, Plumbing, IT)",
+                      "Interactive AI Chatbot assistant to draft detailed technical reports",
+                      "Live ticket progression logs showing exactly when your ticket is solved"
+                    ].map((feature, idx) => (
+                      <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-600 font-medium">
+                        <span className="w-4 h-4 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">✓</span>
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-150">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Request Submission</p>
+                      <p className="text-lg font-black text-slate-900">Under 30 Secs</p>
+                    </div>
+                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-150">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">AI Diagnostics</p>
+                      <p className="text-lg font-black text-slate-955">Smart Support</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Simulated UI Mockup Block */}
+                <div className="md:col-span-6 bg-slate-950 rounded-2xl p-6 border border-slate-800 shadow-2xl relative overflow-hidden min-h-[300px] flex flex-col justify-between">
+                  <div className="absolute top-0 right-0 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+                  
+                  <div className="flex justify-between items-center pb-4 border-b border-slate-800">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">AI Troubleshooter Chatbot</span>
+                    </div>
+                    <span className="text-[8px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded uppercase tracking-wider">AI Live</span>
+                  </div>
+
+                  <div className="my-4 space-y-3 flex-1 flex flex-col justify-end">
+                    <div className="bg-slate-900 border border-slate-850 p-3 rounded-xl text-[10px] max-w-[85%] text-slate-300">
+                      <p className="font-bold text-[8px] text-emerald-400 mb-1">USER QUESTION</p>
+                      How do I submit an emergency fluid repair ticket for the server room AC?
+                    </div>
+
+                    <div className="bg-indigo-950/40 border border-indigo-900 p-3 rounded-xl text-[10px] max-w-[85%] ml-auto text-slate-300">
+                      <p className="font-bold text-[8px] text-indigo-400 mb-1">AI ASSISTANT</p>
+                      Select <span className="text-white font-bold">HVAC / Server AC</span> category, set Priority to <span className="text-red-400 font-bold">Urgent</span>, and I will auto-generate your technical fault checklist!
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 border-t border-slate-850 pt-3">
+                    <input
+                      type="text"
+                      disabled
+                      placeholder="Ask the AI Chatbot helper..."
+                      className="bg-slate-900 border border-slate-800 rounded-lg p-2 text-[10px] text-slate-400 outline-none flex-1"
+                    />
+                    <button className="px-3.5 py-2 bg-emerald-600 text-white font-bold rounded-lg text-[9px] uppercase tracking-wider">
+                      Send
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+        </div>
+      </section>
 
       <section id="docs" className="py-24 bg-transparent">
         <div className="max-w-6xl mx-auto px-6">

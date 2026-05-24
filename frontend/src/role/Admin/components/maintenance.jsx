@@ -1,27 +1,98 @@
 import { AdminData } from "../context/Admindatamaintenance";
 import { useSelector, useDispatch } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { fetchAllGeneralRequest } from "../../../slices/generalrequestslices";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
+const ROWS_PER_PAGE = 5;
+
+function usePagination(data) {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(data.length / ROWS_PER_PAGE));
+  const safeP = Math.min(page, totalPages);
+  const paged = data.slice((safeP - 1) * ROWS_PER_PAGE, safeP * ROWS_PER_PAGE);
+  return {
+    page: safeP,
+    totalPages,
+    paged,
+    setPage,
+    canPrev: safeP > 1,
+    canNext: safeP < totalPages,
+    total: data.length,
+    from: data.length === 0 ? 0 : (safeP - 1) * ROWS_PER_PAGE + 1,
+    to: Math.min(safeP * ROWS_PER_PAGE, data.length),
+  };
+}
+
+function Pagination({ pg }) {
+  if (pg.totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between px-6 py-3 border-t border-slate-100">
+      <p className="text-xs text-slate-500">
+        Showing <span className="font-semibold text-slate-700">{pg.from}–{pg.to}</span> of <span className="font-semibold text-slate-700">{pg.total}</span>
+      </p>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => pg.setPage(pg.page - 1)}
+          disabled={!pg.canPrev}
+          className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        {Array.from({ length: pg.totalPages }, (_, i) => i + 1).map((n) => (
+          <button
+            key={n}
+            onClick={() => pg.setPage(n)}
+            className={`w-8 h-8 rounded-lg text-xs font-semibold transition ${
+              n === pg.page
+                ? "bg-blue-600 text-white"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            {n}
+          </button>
+        ))}
+        <button
+          onClick={() => pg.setPage(pg.page + 1)}
+          disabled={!pg.canNext}
+          className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function Maintenance() {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const { allraiserequest } = AdminData();
-  const GeneralRequest = useSelector((state) => {
-    return state.GeneralRequest.data
-  })
-  // console.log(GeneralRequest)
+  const GeneralRequest = useSelector((state) => state.GeneralRequest.data);
 
   useEffect(() => {
-    dispatch(fetchAllGeneralRequest())
+    dispatch(fetchAllGeneralRequest());
+  }, []);
 
+  const workingData = allraiserequest.filter(
+    (req) => req.status === "assigned" || req.status === "in-process"
+  );
+  const completedData = allraiserequest.filter(
+    (req) => req.status === "completed"
+  );
 
-  }, [])
+  const pgActive = usePagination(allraiserequest);
+  const pgWorking = usePagination(workingData);
+  const pgCompleted = usePagination(completedData);
+  const pgGeneral = usePagination(GeneralRequest);
 
   return (
     <div className="p-4 md:p-8 space-y-8 font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <div className="overflow-x-auto rounded-3xl border border-slate-100 shadow-xl bg-white p-6">
-        <h2 className="text-2xl font-bold mb-6 text-slate-900 tracking-tight">Active Issue Requests</h2>
+
+      {/* Active Issue Requests */}
+      <div className="overflow-x-auto rounded-3xl border border-slate-100 shadow-xl bg-white">
+        <div className="p-6 pb-0">
+          <h2 className="text-2xl font-bold mb-6 text-slate-900 tracking-tight">Active Issue Requests</h2>
+        </div>
         <table className="min-w-full divide-y divide-slate-100">
           <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold tracking-[0.1em]">
             <tr>
@@ -34,8 +105,8 @@ export default function Maintenance() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
-            {allraiserequest.length > 0 ? (
-              allraiserequest.map((req) => (
+            {pgActive.paged.length > 0 ? (
+              pgActive.paged.map((req) => (
                 <tr key={req._id} className="hover:bg-slate-50/50 transition-colors group">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
@@ -75,7 +146,6 @@ export default function Maintenance() {
                     <p className="text-[11px] text-slate-500 leading-relaxed max-w-[250px] mb-2" title={req.description}>
                       {req.description || "No description provided"}
                     </p>
-                    
                   </td>
                   <td className="px-6 py-5 text-right">
                     <p className="text-sm font-black text-slate-800">₹{req.costEstimate || "0"}</p>
@@ -85,15 +155,19 @@ export default function Maintenance() {
               ))
             ) : (
               <tr>
-                <td colSpan={9} className="text-center px-4 py-6 text-gray-500">No requests to display</td>
+                <td colSpan={6} className="text-center px-4 py-6 text-gray-500">No requests to display</td>
               </tr>
             )}
           </tbody>
         </table>
+        <Pagination pg={pgActive} />
       </div>
 
-      <div className="overflow-x-auto rounded-3xl border border-slate-100 shadow-xl bg-white p-6">
-        <h2 className="text-2xl font-bold mb-6 text-slate-900 tracking-tight">Working On Assets</h2>
+      {/* Working On Assets */}
+      <div className="overflow-x-auto rounded-3xl border border-slate-100 shadow-xl bg-white">
+        <div className="p-6 pb-0">
+          <h2 className="text-2xl font-bold mb-6 text-slate-900 tracking-tight">Working On Assets</h2>
+        </div>
         <table className="min-w-full divide-y divide-slate-100">
           <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold tracking-[0.1em]">
             <tr>
@@ -106,68 +180,69 @@ export default function Maintenance() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
-            {allraiserequest.filter((req) => req.status === "assigned" || req.status === "in-process").length > 0 ? (
-              allraiserequest
-                .filter((req) => req.status === "assigned" || req.status === "in-process")
-                .map((req) => (
-                  <tr key={req._id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-xl overflow-hidden border border-slate-100 shadow-sm flex-shrink-0">
-                          {req.assetid?.assetImg ? (
-                            <img src={req.assetid.assetImg} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-slate-50 flex items-center justify-center text-[10px] text-slate-300">N/A</div>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-800">{req.assetid?.assetName || "N/A"}</p>
-                          <p className="text-[9px] text-slate-400 font-medium uppercase tracking-tighter">{req.assetid?.category}</p>
-                        </div>
+            {pgWorking.paged.length > 0 ? (
+              pgWorking.paged.map((req) => (
+                <tr key={req._id} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-xl overflow-hidden border border-slate-100 shadow-sm flex-shrink-0">
+                        {req.assetid?.assetImg ? (
+                          <img src={req.assetid.assetImg} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-slate-50 flex items-center justify-center text-[10px] text-slate-300">N/A</div>
+                        )}
                       </div>
-                    </td>
-                    <td className="px-6 py-5">
-                      <p className="text-xs font-bold text-slate-700">{req.userid?.name || "N/A"}</p>
-                      <p className="text-[10px] text-slate-400 font-medium">{req.userid?.phone || "N/A"}</p>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
-                        <p className="text-xs font-semibold text-indigo-600">{req.assignedto?.name || "Assigning..."}</p>
+                      <div>
+                        <p className="text-sm font-bold text-slate-800">{req.assetid?.assetName || "N/A"}</p>
+                        <p className="text-[9px] text-slate-400 font-medium uppercase tracking-tighter">{req.assetid?.category}</p>
                       </div>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="flex flex-col gap-1.5">
-                        <span className={`w-fit px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${req.aiPriority === "high" ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-amber-50 text-amber-600 border border-amber-100"}`}>
-                          {req.aiPriority || "Medium"} Priority
-                        </span>
-                        <span className="w-fit px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-600 border border-indigo-100">
-                          {req.status}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5">
-                      <p className="text-[10px] text-slate-500 leading-relaxed max-w-[200px] mb-2" title={req.description}>
-                        {req.description || "In progress..."}
-                      </p>
-                      
-                    </td>
-                    <td className="px-6 py-5 text-right">
-                      <p className="text-sm font-black text-slate-800">₹{req.costEstimate || "N/A"}</p>
-                    </td>
-                  </tr>
-                ))
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <p className="text-xs font-bold text-slate-700">{req.userid?.name || "N/A"}</p>
+                    <p className="text-[10px] text-slate-400 font-medium">{req.userid?.phone || "N/A"}</p>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
+                      <p className="text-xs font-semibold text-indigo-600">{req.assignedto?.name || "Assigning..."}</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="flex flex-col gap-1.5">
+                      <span className={`w-fit px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${req.aiPriority === "high" ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-amber-50 text-amber-600 border border-amber-100"}`}>
+                        {req.aiPriority || "Medium"} Priority
+                      </span>
+                      <span className="w-fit px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-600 border border-indigo-100">
+                        {req.status}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <p className="text-[10px] text-slate-500 leading-relaxed max-w-[200px] mb-2" title={req.description}>
+                      {req.description || "In progress..."}
+                    </p>
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <p className="text-sm font-black text-slate-800">₹{req.costEstimate || "N/A"}</p>
+                  </td>
+                </tr>
+              ))
             ) : (
               <tr>
-                <td colSpan={9} className="text-center px-4 py-6 text-gray-500">No working assets to display</td>
+                <td colSpan={6} className="text-center px-4 py-6 text-gray-500">No working assets to display</td>
               </tr>
             )}
           </tbody>
         </table>
+        <Pagination pg={pgWorking} />
       </div>
 
-      <div className="overflow-x-auto rounded-3xl border border-slate-100 shadow-xl bg-white p-6">
-        <h2 className="text-2xl font-bold mb-6 text-slate-900 tracking-tight">Completed Requests</h2>
+      {/* Completed Requests */}
+      <div className="overflow-x-auto rounded-3xl border border-slate-100 shadow-xl bg-white">
+        <div className="p-6 pb-0">
+          <h2 className="text-2xl font-bold mb-6 text-slate-900 tracking-tight">Completed Requests</h2>
+        </div>
         <table className="min-w-full divide-y divide-slate-100">
           <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold tracking-[0.1em]">
             <tr>
@@ -180,57 +255,59 @@ export default function Maintenance() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
-            {allraiserequest.filter((req) => req.status === "completed").length > 0 ? (
-              allraiserequest
-                .filter((req) => req.status === "completed")
-                .map((req) => (
-                  <tr key={req._id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-100 shadow-sm flex-shrink-0 ">
-                          {req.assetid?.assetImg ? (
-                            <img src={req.assetid.assetImg} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-slate-50 flex items-center justify-center text-[8px] text-slate-300">N/A</div>
-                          )}
-                        </div>
-                        <p className="text-xs font-bold text-slate-600  decoration-slate-300">{req.assetid?.assetName || "N/A"}</p>
+            {pgCompleted.paged.length > 0 ? (
+              pgCompleted.paged.map((req) => (
+                <tr key={req._id} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-100 shadow-sm flex-shrink-0 ">
+                        {req.assetid?.assetImg ? (
+                          <img src={req.assetid.assetImg} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-slate-50 flex items-center justify-center text-[8px] text-slate-300">N/A</div>
+                        )}
                       </div>
-                    </td>
-                    <td className="px-6 py-5">
-                      <p className="text-xs font-semibold text-slate-600">{req.userid?.name || "N/A"}</p>
-                    </td>
-                    <td className="px-6 py-5">
-                      <p className="text-xs font-bold text-emerald-600">{req.assignedto?.name || "System"}</p>
-                    </td>
-                    <td className="px-6 py-5">
-                      <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">
-                        Resolved
-                      </span>
-                    </td>
-                    <td className="px-6 py-5">
-                      <p className="text-[10px] text-slate-400 line-clamp-1 italic max-w-[200px] mb-1">{req.description || "N/A"}</p>
-                    </td>
-                    <td className="px-6 py-5 text-right">
-                      <p className="text-sm font-bold text-slate-900">₹{req.costEstimate || "0"}</p>
-                      <p className={`inline-block text-xs font-semibold px-2 py-1 rounded-md mt-1 
+                      <p className="text-xs font-bold text-slate-600  decoration-slate-300">{req.assetid?.assetName || "N/A"}</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <p className="text-xs font-semibold text-slate-600">{req.userid?.name || "N/A"}</p>
+                  </td>
+                  <td className="px-6 py-5">
+                    <p className="text-xs font-bold text-emerald-600">{req.assignedto?.name || "System"}</p>
+                  </td>
+                  <td className="px-6 py-5">
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">
+                      Resolved
+                    </span>
+                  </td>
+                  <td className="px-6 py-5">
+                    <p className="text-[10px] text-slate-400 line-clamp-1 italic max-w-[200px] mb-1">{req.description || "N/A"}</p>
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <p className="text-sm font-bold text-slate-900">₹{req.costEstimate || "0"}</p>
+                    <p className={`inline-block text-xs font-semibold px-2 py-1 rounded-md mt-1 
   ${req.payment ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
-                        {req.payment ? "Paid" : "Unpaid"}
-                      </p>
-                    </td>
-                  </tr>
-                ))
+                      {req.payment ? "Paid" : "Unpaid"}
+                    </p>
+                  </td>
+                </tr>
+              ))
             ) : (
               <tr>
-                <td colSpan={9} className="text-center px-4 py-6 text-gray-500">No completed requests to display</td>
+                <td colSpan={6} className="text-center px-4 py-6 text-gray-500">No completed requests to display</td>
               </tr>
             )}
           </tbody>
         </table>
+        <Pagination pg={pgCompleted} />
       </div>
 
-      <div className="overflow-x-auto rounded-3xl border border-slate-100 shadow-xl bg-white p-6">
-        <h2 className="text-2xl font-bold mb-6 text-slate-900 tracking-tight">General Requests ({GeneralRequest.length})</h2>
+      {/* General Requests */}
+      <div className="overflow-x-auto rounded-3xl border border-slate-100 shadow-xl bg-white">
+        <div className="p-6 pb-0">
+          <h2 className="text-2xl font-bold mb-6 text-slate-900 tracking-tight">General Requests ({GeneralRequest.length})</h2>
+        </div>
         <table className="min-w-full divide-y divide-slate-100">
           <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold tracking-[0.1em]">
             <tr>
@@ -242,8 +319,8 @@ export default function Maintenance() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
-            {GeneralRequest.length > 0 ? (
-              GeneralRequest.map((req) => (
+            {pgGeneral.paged.length > 0 ? (
+              pgGeneral.paged.map((req) => (
                 <tr key={req._id} className="hover:bg-slate-50/50 transition-colors group">
                   <td className="px-6 py-5">
                     <p className="text-xs font-bold text-slate-700">{req.userId?.name || "N/A"}</p>
@@ -253,7 +330,6 @@ export default function Maintenance() {
                     <p className="text-xs text-slate-600 mb-2 max-w-[200px]" title={req.issue}>
                       {req.issue}
                     </p>
-
                   </td>
                   <td className="px-6 py-5">
                     <span className={`w-fit px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${req.status === "COMPLETED" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
@@ -282,6 +358,7 @@ export default function Maintenance() {
             )}
           </tbody>
         </table>
+        <Pagination pg={pgGeneral} />
       </div>
     </div>
   );

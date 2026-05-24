@@ -2,23 +2,20 @@ import Navbar from "./navbar";
 import { AdminData } from "../context/Admindatamaintenance";
 import { useState } from "react";
 import axios from "../../../config/api";
+import { ClipboardList, Clock, UserCheck, Wrench, CheckCircle2 } from "lucide-react";
+
 export default function WorkOrder() {
 
-
   const [requestid, setRequestid] = useState("")
-  // console.log("assetid ", requestid)
   const [technicianid, setTechnicianid] = useState("")
-  // console.log("tech -", technicianid)
   const [showform, setShowform] = useState(false)
   const { allraiserequest, setAllraiserequest, alltechnicians } = AdminData();
-  // console.log(alltechnicians)
-  // console.log(allraiserequest)
 
-
-
-
-
-
+  const totalCount = allraiserequest.length;
+  const pendingCount = allraiserequest.filter((r) => r.status === "pending").length;
+  const assignedCount = allraiserequest.filter((r) => r.status === "assigned").length;
+  const inProcessCount = allraiserequest.filter((r) => r.status === "in-process").length;
+  const completedCount = allraiserequest.filter((r) => r.status === "completed").length;
 
   const handleAssign = () => {
     if (!technicianid || !requestid) {
@@ -41,19 +38,44 @@ export default function WorkOrder() {
           )
         );
         setTechnicianid("");
-
         setShowform(false);
       })
       .catch((err) => console.log(err.message));
   };
 
+  const getStatusStyle = (status) => {
+    const styles = {
+      pending: "bg-amber-100 text-amber-800",
+      assigned: "bg-blue-100 text-blue-800",
+      "in-process": "bg-purple-100 text-purple-800",
+      completed: "bg-emerald-100 text-emerald-800",
+    };
+    return styles[status] || "bg-gray-100 text-gray-700";
+  };
+
+  const getPriorityStyle = (priority) => {
+    const styles = {
+      high: "bg-red-100 text-red-700",
+      medium: "bg-yellow-100 text-yellow-700",
+      low: "bg-green-100 text-green-700",
+    };
+    return styles[priority] || "bg-gray-100 text-gray-600";
+  };
+
+  const kpiCards = [
+    { label: "Total Requests", value: totalCount, icon: ClipboardList, iconBg: "bg-gray-100", iconColor: "text-gray-600", valueBg: "text-gray-800" },
+    { label: "Pending", value: pendingCount, icon: Clock, iconBg: "bg-amber-100", iconColor: "text-amber-600", valueBg: "text-amber-700" },
+    { label: "Assigned", value: assignedCount, icon: UserCheck, iconBg: "bg-blue-100", iconColor: "text-blue-600", valueBg: "text-blue-700" },
+    { label: "In Process", value: inProcessCount, icon: Wrench, iconBg: "bg-purple-100", iconColor: "text-purple-600", valueBg: "text-purple-700" },
+    { label: "Completed", value: completedCount, icon: CheckCircle2, iconBg: "bg-emerald-100", iconColor: "text-emerald-600", valueBg: "text-emerald-700" },
+  ];
 
   return (
-    <div className="p-4 md:p-8 mt-4">
+    <div className="p-4 md:p-8 mt-4 font-sans">
+
       {showform && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="relative w-[400px] max-w-[90%] rounded-xl bg-white p-6 shadow-xl">
-
             <button
               onClick={() => {
                 setTechnicianid("");
@@ -78,7 +100,6 @@ export default function WorkOrder() {
               >
                 Technician
               </label>
-
               <select
                 id="technician"
                 value={technicianid}
@@ -106,7 +127,6 @@ export default function WorkOrder() {
               >
                 Cancel
               </button>
-
               <button
                 onClick={handleAssign}
                 className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white
@@ -119,167 +139,131 @@ export default function WorkOrder() {
         </div>
       )}
 
+      <h1 className="text-xl font-bold text-gray-900 mb-6">Work Orders</h1>
 
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        {kpiCards.map((kpi) => (
+          <div
+            key={kpi.label}
+            className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4 hover:shadow-sm transition-shadow duration-200"
+          >
+            <div className={`w-12 h-12 ${kpi.iconBg} rounded-xl flex items-center justify-center shrink-0`}>
+              <kpi.icon className={`w-6 h-6 ${kpi.iconColor}`} />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">{kpi.label}</p>
+              <p className={`text-2xl font-bold ${kpi.valueBg} leading-tight mt-1`}>{kpi.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
 
-
-
-
-
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-4 font-sans">
-          Visual Overview
-        </h1>
-
-
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
-          {allraiserequest.map((ele) => (
-            <div
-              key={ele._id}
-              className="bg-white rounded-xl shadow-md overflow-hidden hover:blue-400 transition-shadow duration-200 w-full"
-            >
-
-              <div className="w-full h-32 bg-gray-100 flex items-center justify-center p-3">
-                {ele.assetid?.assetImg ? (
-                  <img
-                    src={ele.assetid.assetImg}
-                    alt={ele.assetid?.assetName}
-                    className="w-40 h-30 object-cover"
-                  />
-                ) : (
-                  <span className="text-gray-400 font-medium">No Image</span>
-                )}
-              </div>
-              <div className="p-3 flex flex-col gap-1">
-                <h2 className="text-sm font-semibold text-gray-800 truncate">
-                  {ele.assetid?.assetName || ele.assetid || "Unknown Asset"}
-                </h2>
-
-                <p className="text-sm text-balck-500 truncate">
-                  <span className="font-medium">Raised By:</span> {ele.userid?.name || ele.userid || "Unknown"}
-                </p>
-
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {ele.description || "No description"}
-                </p>
-
-                <p className="text-sm">
-                  <span className="font-medium">Status:</span>{" "}
-                  <span
-                    className={`font-semibold ${ele.status === "pending"
-                      ? "text-yellow-600"
-                      : ele.status === "assigned"
-                        ? "text-blue-600"
-                        : ele.status === "in-process"
-                          ? "text-purple-600"
-                          : ele.status === "completed"
-                            ? "text-green-600"
-                            : "text-gray-500"
-                      }`}
-                  >
-                    {ele.status}
-                  </span>
-                </p>
-
-                <p className="text-sm text-black-500 truncate">
-                  <span className="font-medium">Assigned To:</span> {ele.assignedto?.name || "Unassigned"}
-                </p>
-
+      <h2 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><span className="w-1 h-5 bg-blue-600 rounded-full inline-block"></span>Visual Overview</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {allraiserequest.map((ele) => (
+          <div
+            key={ele._id}
+            className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200"
+          >
+            <div className="w-full h-40 bg-gray-50 flex items-center justify-center p-2 overflow-hidden">
+              {ele.assetid?.assetImg ? (
+                <img
+                  src={ele.assetid.assetImg}
+                  alt={ele.assetid?.assetName}
+                  className="max-h-35 max-w-full object-contain"
+                />
+              ) : (
+                <span className="text-gray-400 text-sm">No Image</span>
+              )}
+            </div>
+            <div className="p-3 space-y-1.5">
+              <h3 className="text-sm font-semibold text-gray-800 truncate">
+                {ele.assetid?.assetName || ele.assetid || "Unknown Asset"}
+              </h3>
+              <p className="text-xs text-gray-500 truncate">
+                <span className="font-medium text-gray-600">Raised By:</span> {ele.userid?.name || ele.userid || "Unknown"}
+              </p>
+              <p className="text-xs text-gray-500 line-clamp-2">
+                {ele.description || "No description"}
+              </p>
+              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${getStatusStyle(ele.status)}`}>
+                  {ele.status}
+                </span>
+                <span className="text-[10px] text-gray-400 font-medium truncate max-w-[80px]">
+                  {ele.assignedto?.name || "Unassigned"}
+                </span>
               </div>
             </div>
-          ))}
-        </div>
-        <div className="mt-8 font-sans">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Actionable Details</h2>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200 rounded-xl shadow-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-700">Asset Name</th>
-                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-700">Status</th>
-                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-700">Priority</th>
-                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-700">Issue</th>
-                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-700">Technician</th>
-                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-700">Assign Technician</th>
-                </tr>
-              </thead>
-              <tbody>
-                {allraiserequest.map((ele, index) => (
-                  <tr
-                    key={ele._id}
-                    className={`border-t border-gray-200 transition-colors duration-300 ${index % 2 === 0 ? "bg-gray-50 hover:bg-gray-100" : "bg-white hover:bg-gray-100"
-                      }`}
-                  >
-                    <td className="px-5 py-3 text-sm text-gray-800 break-words">
-                      {ele.assetid?.assetName || "Unknown Asset"}
-                    </td>
-                    <td className="px-5 py-3 text-sm">
-                      <span
-                        className={`font-semibold ${ele.status === "pending"
-                          ? "text-yellow-600"
-                          : ele.status === "assigned"
-                            ? "text-blue-600"
-                            : ele.status === "in-process"
-                              ? "text-purple-600"
-                              : ele.status === "completed"
-                                ? "text-green-600"
-                                : "text-gray-500"
-                          }`}
-                      >
-                        {ele.status.charAt(0).toUpperCase() + ele.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold ${ele.aiPriority === "high"
-                          ? "bg-red-100 text-red-800"
-                          : ele.aiPriority === "medium"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : ele.aiPriority === "low"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                      >
-                        {ele.aiPriority || "N/A"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 text-sm text-gray-600 break-words whitespace-normal">
-                      {ele.description || "No description"}
-                    </td>
-                    <td
-                      className={`px-5 py-3 text-sm font-medium break-words whitespace-normal ${ele.assignedto ? "text-blue-800" : "text-red-500"
-                        }`}
-                    >
-                      {ele.assignedto?.name || "Unassigned"}
-                    </td>
-                    <td className="px-5 py-3 text-sm">
-                      {ele.assignedto ? (
-                        <span className="font-medium text-blue-800">Assigned</span>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setRequestid(ele._id);
-                            setShowform(true);
-                          }}
-                          className="px-3 py-1 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 transition"
-                        >
-                          Assign
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
-        </div>
-
-
-
-
-
+        ))}
       </div>
+
+      <div className="mt-10">
+        <h2 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><span className="w-1 h-5 bg-blue-600 rounded-full inline-block"></span>Actionable Details</h2>
+        <div className="overflow-x-auto rounded-xl border border-gray-200">
+          <table className="min-w-full">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Asset</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Priority</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Issue</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Technician</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Action</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-100">
+              {allraiserequest.map((ele) => (
+                <tr
+                  key={ele._id}
+                  className="hover:bg-gray-50 transition-colors duration-150"
+                >
+                  <td className="px-5 py-3 text-sm font-medium text-gray-800 whitespace-nowrap">
+                    {ele.assetid?.assetName || "Unknown Asset"}
+                  </td>
+                  <td className="px-5 py-3">
+                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${getStatusStyle(ele.status)}`}>
+                      {ele.status}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3">
+                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${getPriorityStyle(ele.aiPriority)}`}>
+                      {ele.aiPriority || "N/A"}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-sm text-gray-600 max-w-[220px] truncate">
+                    {ele.description || "No description"}
+                  </td>
+                  <td className="px-5 py-3 text-sm font-medium whitespace-nowrap">
+                    <span className={ele.assignedto ? "text-gray-800" : "text-red-500"}>
+                      {ele.assignedto?.name || "Unassigned"}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3">
+                    {ele.assignedto ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Assigned
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setRequestid(ele._id);
+                          setShowform(true);
+                        }}
+                        className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition"
+                      >
+                        Assign
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   );
 }

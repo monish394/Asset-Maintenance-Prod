@@ -201,27 +201,24 @@ export default function TechnicianNavbar() {
       </div>
 
       <div className="flex items-center gap-4">
-        <ul className="hidden lg:flex items-center gap-1 text-gray-700 font-medium text-sm">
+        <ul className="hidden lg:flex items-center gap-1.5 text-gray-600 font-medium text-sm">
           {menu.map((item) => (
             <li key={item.to}>
               <NavLink
                 to={item.to}
                 className={({ isActive }) =>
-                  `relative flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 group ${isActive
-                    ? "bg-indigo-50 text-indigo-700 font-bold shadow-sm"
-                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-100/80"
+                  `relative flex items-center gap-2 px-3.5 py-2 rounded-lg transition-all duration-200 group ${isActive
+                    ? "bg-indigo-50/70 text-indigo-600 font-semibold"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-100/50"
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <span className={`transition-colors duration-300 ${isActive ? "text-indigo-600" : "text-gray-400 group-hover:text-gray-600"}`}>
+                    <span className={`transition-colors duration-200 ${isActive ? "text-indigo-600" : "text-gray-400 group-hover:text-gray-500"}`}>
                       {item.icon}
                     </span>
                     <span className="tracking-tight">{item.label}</span>
-                    {isActive && (
-                      <></>
-                    )}
                   </>
                 )}
               </NavLink>
@@ -568,9 +565,9 @@ export default function TechnicianNavbar() {
                         to={item.to}
                         onClick={() => setShowMobileMenu(false)}
                         className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
-                            ? "bg-indigo-50 text-indigo-700 font-bold"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+                          `flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${isActive
+                            ? "bg-indigo-50/70 text-indigo-600 font-semibold"
+                            : "text-gray-500 hover:bg-gray-100/50 hover:text-gray-900"
                           }`
                         }
                       >

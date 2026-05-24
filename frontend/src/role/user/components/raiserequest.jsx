@@ -544,7 +544,8 @@ export default function RaiseRequest() {
 
       <div className="bg-white shadow-xl rounded-2xl p-6 w-full">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 tracking-wide">
+          <h1 className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <span className="w-1 h-5 bg-blue-600 rounded-full inline-block"></span>
             My Service Requests
           </h1>
           <button
@@ -555,7 +556,7 @@ export default function RaiseRequest() {
                 setShowRaiseForm(true);
               }
             }}
-            className="flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 active:scale-95 transition-all shadow-md self-end sm:self-auto"
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow-md shadow-blue-100 active:scale-95 duration-150 self-end sm:self-auto"
           >
             <FaPlus /> Raise Request
           </button>
@@ -680,7 +681,7 @@ export default function RaiseRequest() {
                             receiverId: ele.assignedto?._id,
                             receiverName: ele.assignedto?.name
                           })}
-                          className="relative p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition-colors"
+                          className="relative p-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl border border-indigo-100 shadow-sm transition-all duration-150"
                           title="Chat with Technician"
                         >
                           <FaComments />
@@ -692,7 +693,7 @@ export default function RaiseRequest() {
                       {ele.status === "pending" && (
                         <button
                           onClick={() => setRequestToDelete({ id: ele._id, type: 'asset' })}
-                          className="p-2 bg-rose-100 text-rose-600 rounded-lg hover:bg-rose-200 transition-colors"
+                          className="p-2.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl border border-rose-100 shadow-sm transition-all duration-150"
                           title="Delete Request"
                         >
                           <FaTrash size={12} />
@@ -725,8 +726,11 @@ export default function RaiseRequest() {
 
       <div className="mt-16">
         <div className="mb-4">
-          <h2 className="text-xl font-bold text-slate-800 tracking-tight">Assigned Technicians</h2>
-          <p className="text-[11px] text-slate-400 font-medium">Technicians currently handling your requests</p>
+          <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <span className="w-1 h-5 bg-blue-600 rounded-full inline-block"></span>
+            Assigned Technicians
+          </h2>
+          <p className="text-[11px] text-slate-400 font-medium mt-1 ml-3">Technicians currently handling your requests</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {assignedTechs.length > 0 ? (
@@ -817,19 +821,20 @@ export default function RaiseRequest() {
 
       <div className="mt-20 px-4 font-[Poppins]">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <h2 className="md:text-2xl font-bold text-gray-800 tracking-tight">
+          <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <span className="w-1 h-5 bg-blue-600 rounded-full inline-block"></span>
             My General Requests
           </h2>
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setShowGeneralForm(true)}
-              className="flex items-center gap-2 px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition"
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow-md shadow-blue-100 active:scale-95 duration-150"
             >
               <FaPlus /> Raise Request
             </button>
             <button
               onClick={() => handleNearbyTechnician()}
-              className="px-5 py-2 bg-green-200 text-green-800 font-semibold rounded-lg border border-teal-200 hover:bg-teal-100 transition"
+              className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow-md shadow-emerald-100 active:scale-95 duration-150"
             >
               Nearby Technicians
             </button>
@@ -940,7 +945,7 @@ export default function RaiseRequest() {
                                 receiverId: ele.acceptedBy?._id,
                                 receiverName: ele.acceptedBy?.name
                               })}
-                              className="relative p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition-colors"
+                              className="relative p-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl border border-indigo-100 shadow-sm transition-all duration-150"
                               title="Chat with Technician"
                             >
                               <FaComments />
@@ -952,7 +957,7 @@ export default function RaiseRequest() {
                           {ele.status === "OPEN" && (
                             <button
                               onClick={() => setRequestToDelete({ id: ele._id, type: 'general' })}
-                              className="p-2 bg-rose-100 text-rose-600 rounded-lg hover:bg-rose-200 transition-colors"
+                              className="p-2.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl border border-rose-100 shadow-sm transition-all duration-150"
                               title="Delete General Request"
                             >
                               <FaTrash size={12} />
